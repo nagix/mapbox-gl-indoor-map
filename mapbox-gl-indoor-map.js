@@ -1,5 +1,18 @@
+const CENTER = [139.7670, 35.6814];
+const ZOOM = 15.95;
+const ZOOM_SELECTION = 18.95;
+const PITCH = 60;
 const FLOOR_IDS = [-4, -3, -2, -1, 0, 1, 2, 3];
 const DELTA = 0.01;
+
+const COLOR_MAIN = '#0f0';
+const COLOR_HOVER = '#0ff';
+const COLOR_SELECTION = '#ff0';
+const COLOR_TEXT = '#fff';
+const COLOR_HALO = '#333';
+
+const OPACITY_FLOOR = 0.2;
+const OPACITY_ROOM = 0.5;
 
 let visibleFloorId;
 let floorIdForSelection;
@@ -126,11 +139,13 @@ function updateMap() {
         map.setPaintProperty(`structure-line-${floorId}`, 'line-opacity', opacity);
         map.setPaintProperty(`floor-fill-${floorId}`, 'fill-extrusion-opacity', 0.2 * opacity);
         map.setPaintProperty(`room-${floorId}`, 'fill-extrusion-opacity', 0.5 * opacity);
+        map.setPaintProperty(`symbol-${floorId}`, 'text-opacity', floorId === visibleFloorId ? 1 : 0);
 
         map.setPaintProperty(`floor-line-${floorId}`, 'line-translate', translate);
         map.setPaintProperty(`structure-line-${floorId}`, 'line-translate', translate);
         map.setPaintProperty(`floor-fill-${floorId}`, 'fill-extrusion-translate', translate);
         map.setPaintProperty(`room-${floorId}`, 'fill-extrusion-translate', translate);
+        map.setPaintProperty(`symbol-${floorId}`, 'text-translate', translate);
     }
 }
 
@@ -175,7 +190,7 @@ function onSelect(id) {
 
             selectFloor(floorId);
 
-            const zoomFactor = Math.pow(2, 18.95 - 12);
+            const zoomFactor = Math.pow(2, ZOOM_SELECTION - 12);
             const pitchFactor = Math.sin(map.getPitch() * Math.PI / 180);
             const translateY = isNaN(visibleFloorId) ?
               -floorId * zoomFactor * pitchFactor :
@@ -183,7 +198,7 @@ function onSelect(id) {
 
             map.easeTo({
                 center: turf.getCoord(turf.centerOfMass(feature[0])),
-                zoom: 18.95,
+                zoom: ZOOM_SELECTION,
                 padding: translateY < 0 ? {top: -translateY} : {bottom: translateY}
             });
         }
@@ -198,9 +213,9 @@ function onSelect(id) {
 const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/dark-v10',
-    center: [139.7670, 35.6814],
-    zoom: 15.95,
-    pitch: 60
+    center: CENTER,
+    zoom: ZOOM,
+    pitch: PITCH
 });
 
 // Add zoom and rotation controls to the map.
@@ -232,7 +247,7 @@ map.on('load', () => {
             'source-layer': 'indoor_floorplan',
             filter: ['==', ['get', 'floor_id'], floorId],
             paint: {
-                'line-color': '#0f0',
+                'line-color': COLOR_MAIN,
                 'line-opacity': opacity,
                 'line-translate': translate,
                 'line-translate-anchor': 'viewport'
@@ -246,7 +261,7 @@ map.on('load', () => {
             'source-layer': 'indoor_structure',
             filter: ['==', ['get', 'floor_id'], floorId],
             paint: {
-                'line-color': '#0f0',
+                'line-color': COLOR_MAIN,
                 'line-opacity': opacity,
                 'line-translate': translate,
                 'line-translate-anchor': 'viewport'
@@ -261,11 +276,15 @@ map.on('load', () => {
             filter: [
                 'all',
                 ['==', ['get', 'floor_id'], floorId],
-                ['any', ['all', ['==', ['get', 'class'], 'area'], ['!=', ['get', 'type'], 'Room']], ['==', ['get', 'class'], 'floor']]
+                [
+                    'any',
+                    ['all', ['==', ['get', 'class'], 'area'], ['!=', ['get', 'type'], 'Room']],
+                    ['==', ['get', 'class'], 'floor']
+                ]
             ],
             paint: {
-                'fill-extrusion-color': '#0f0',
-                'fill-extrusion-opacity': 0.2 * opacity,
+                'fill-extrusion-color': COLOR_MAIN,
+                'fill-extrusion-opacity': OPACITY_FLOOR * opacity,
                 'fill-extrusion-height': (+floorId - FLOOR_IDS[0]) * DELTA,
                 'fill-extrusion-translate': translate,
                 'fill-extrusion-translate-anchor': 'viewport'
@@ -280,21 +299,46 @@ map.on('load', () => {
             filter: [
                 'all',
                 ['==', ['get', 'floor_id'], floorId],
-                ['all', ['any', ['!=', ['get', 'class'], 'area'], ['==', ['get', 'type'], 'Room']], ['!=', ['get', 'class'], 'floor']]
+                [
+                    'all',
+                    ['any', ['!=', ['get', 'class'], 'area'], ['==', ['get', 'type'], 'Room']],
+                    ['!=', ['get', 'class'], 'floor']
+                ]
             ],
             paint: {
                 'fill-extrusion-color': [
                     'case',
                     ['boolean', ['feature-state', 'hover'], false],
-                    '#0ff',
+                    COLOR_HOVER,
                     ['boolean', ['feature-state', 'selection'], false],
-                    '#ff0',
-                    '#0f0'
+                    COLOR_SELECTION,
+                    COLOR_MAIN
                 ],
-                'fill-extrusion-opacity': 0.5 * opacity,
+                'fill-extrusion-opacity': OPACITY_ROOM * opacity,
                 'fill-extrusion-height': 3 + (+floorId) * DELTA,
                 'fill-extrusion-translate': translate,
                 'fill-extrusion-translate-anchor': 'viewport'
+            }
+        });
+
+        map.addLayer({
+            id: `symbol-${floorId}`,
+            type: 'symbol',
+            source: 'indoor',
+            'source-layer': 'indoor_poi_label',
+            filter: ['==', ['get', 'floor_id'], floorId],
+            layout: {
+                'text-field': ['get', 'name'],
+                'text-size': 12
+            },
+            paint: {
+                'text-color': COLOR_TEXT,
+                'text-opacity': 0,
+                'text-halo-color': COLOR_HALO,
+                'text-halo-blur': 1,
+                'text-halo-width': 1,
+                'text-translate': translate,
+                'text-translate-anchor': 'viewport'
             }
         });
 

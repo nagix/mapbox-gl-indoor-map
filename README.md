@@ -1,6 +1,6 @@
 # Mapbox GL JS Indoor Map
 
-Indoor Map based on *Mapbox Indoor v1* tileset which contains 439 facilities in Japan including major stations and underground malls.
+Indoor map based on *[Mapbox Indoor v1](https://docs.mapbox.com/vector-tiles/reference/mapbox-indoor-v1/)* tileset which contains 439 facilities in Japan including major stations and underground malls.
 
 ![Screenshot](https://nagix.github.io/mapbox-gl-indoor-map/screenshot1.jpg)
 
