@@ -42,6 +42,10 @@ html, body {
     color: #33B5E5;
 }
 
+.mapboxgl-ctrl button.mapboxgl-ctrl-floor-4 .mapboxgl-ctrl-icon::after {
+    content: '5';
+}
+
 .mapboxgl-ctrl button.mapboxgl-ctrl-floor-3 .mapboxgl-ctrl-icon::after {
     content: '4';
 }
@@ -72,4 +76,16 @@ html, body {
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-floor--4 .mapboxgl-ctrl-icon::after {
     content: 'B4';
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-floor--5 .mapboxgl-ctrl-icon::after {
+    content: 'B5';
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-floor--6 .mapboxgl-ctrl-icon::after {
+    content: 'B6';
+}
+
+.mapboxgl-ctrl button.mapboxgl-ctrl-floor--7 .mapboxgl-ctrl-icon::after {
+    content: 'B7';
 }

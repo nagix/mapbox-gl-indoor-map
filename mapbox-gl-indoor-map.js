@@ -3,7 +3,7 @@ const CENTER = [139.7670, 35.6814];
 const ZOOM = 15.95;
 const ZOOM_SELECTION = 18.95;
 const PITCH = 60;
-const FLOOR_IDS = [-4, -3, -2, -1, 0, 1, 2, 3];
+const FLOOR_IDS = [-7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4];
 const DELTA = 0.01;
 
 const COLOR_MAIN = '#0f0';
