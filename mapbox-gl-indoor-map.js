@@ -103,6 +103,12 @@ class IndoorMap extends mapboxgl.Map {
         this.farthestLayerId = `floor-line-${FLOOR_IDS[0]}`;
 
         for (const floorId of FLOOR_IDS) {
+            const floorFilter = ['==', ['get', 'floor_id'], floorId];
+            const roomFilter = [
+                'all',
+                ['any', ['!=', ['get', 'class'], 'area'], ['==', ['get', 'type'], 'Room']],
+                ['!=', ['get', 'class'], 'floor']
+            ];
             const opacity = this.getFloorOpacity(floorId);
             const translate = [0, this.getFloorTranslateY(floorId)];
 
@@ -111,7 +117,7 @@ class IndoorMap extends mapboxgl.Map {
                 type: 'line',
                 source: 'indoor',
                 'source-layer': 'indoor_floorplan',
-                filter: ['==', ['get', 'floor_id'], floorId],
+                filter: floorFilter,
                 paint: {
                     'line-color': COLOR_MAIN,
                     'line-opacity': opacity,
@@ -125,7 +131,7 @@ class IndoorMap extends mapboxgl.Map {
                 type: 'line',
                 source: 'indoor',
                 'source-layer': 'indoor_structure',
-                filter: ['==', ['get', 'floor_id'], floorId],
+                filter: floorFilter,
                 paint: {
                     'line-color': COLOR_MAIN,
                     'line-opacity': opacity,
@@ -139,15 +145,7 @@ class IndoorMap extends mapboxgl.Map {
                 type: 'fill-extrusion',
                 source: 'indoor',
                 'source-layer': 'indoor_floorplan',
-                filter: [
-                    'all',
-                    ['==', ['get', 'floor_id'], floorId],
-                    [
-                        'any',
-                        ['all', ['==', ['get', 'class'], 'area'], ['!=', ['get', 'type'], 'Room']],
-                        ['==', ['get', 'class'], 'floor']
-                    ]
-                ],
+                filter: ['all', floorFilter, ['!', roomFilter]],
                 paint: {
                     'fill-extrusion-color': COLOR_MAIN,
                     'fill-extrusion-opacity': OPACITY_FLOOR * opacity,
@@ -162,15 +160,7 @@ class IndoorMap extends mapboxgl.Map {
                 type: 'fill-extrusion',
                 source: 'indoor',
                 'source-layer': 'indoor_floorplan',
-                filter: [
-                    'all',
-                    ['==', ['get', 'floor_id'], floorId],
-                    [
-                        'all',
-                        ['any', ['!=', ['get', 'class'], 'area'], ['==', ['get', 'type'], 'Room']],
-                        ['!=', ['get', 'class'], 'floor']
-                    ]
-                ],
+                filter: ['all', floorFilter, roomFilter],
                 paint: {
                     'fill-extrusion-color': [
                         'case',
@@ -192,7 +182,7 @@ class IndoorMap extends mapboxgl.Map {
                 type: 'symbol',
                 source: 'indoor',
                 'source-layer': 'indoor_poi_label',
-                filter: ['==', ['get', 'floor_id'], floorId],
+                filter: floorFilter,
                 layout: {
                     'text-field': ['get', 'name'],
                     'text-size': 12
@@ -286,15 +276,13 @@ class IndoorMap extends mapboxgl.Map {
 
     selectFloor(floorId) {
         if (!isNaN(this.visibleFloorId)) {
-            const activeButtons = document.getElementsByClassName('mapboxgl-ctrl-floor-active');
-
-            if (activeButtons.length > 0) {
-                activeButtons[0].classList.remove('mapboxgl-ctrl-floor-active');
+            for (const button of document.getElementsByClassName('mapboxgl-ctrl-floor-active')) {
+                button.classList.remove('mapboxgl-ctrl-floor-active');
             }
             this.visibleFloorId = floorId;
-            document
-                .getElementsByClassName(`mapboxgl-ctrl-floor-${floorId}`)[0]
-                .classList.add('mapboxgl-ctrl-floor-active');
+            for (const button of document.getElementsByClassName(`mapboxgl-ctrl-floor-${floorId}`)) {
+                button.classList.add('mapboxgl-ctrl-floor-active');
+            }
             this.updateMap();
 
             setTimeout(() => {
@@ -378,6 +366,8 @@ class IndoorMap extends mapboxgl.Map {
                 {source: 'indoor', sourceLayer: 'indoor_floorplan', id: this.selection},
                 {selection: true}
             );
+
+            this.fire({type: 'featureclick', id});
         }
     }
 

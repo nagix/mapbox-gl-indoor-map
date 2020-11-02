@@ -36,6 +36,7 @@ html, body {
     font-size: 14px;
     font-weight: bold;
     line-height: 28px;
+    color: #333;
 }
 
 .mapboxgl-ctrl button.mapboxgl-ctrl-floor-active {
